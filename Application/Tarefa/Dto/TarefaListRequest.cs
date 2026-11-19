@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Application.Tarefa.Dto
 {
     public record TarefaListRequest(
-          string Status,
-          string Datavencimento
+          string? Status,
+          string? Datavencimento
         );
 }

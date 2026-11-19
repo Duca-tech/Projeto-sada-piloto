@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Application.Tarefa.Dto
 {
     public record TarefaResponse(
-            string Id,
+            string? Id,
             string Mensagem,
             int status,
             string? Erro

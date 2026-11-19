@@ -17,6 +17,6 @@ namespace Application.Tarefa
 
         void AtualizarTarefa(TarefaInfo request);
 
-        TarefaListResponse ListarTarefas(TarefaListRequest request, int pagina, int tamanho);
+        TarefaListResponse ListarTarefas(EnumTarefa.status? status, DateTime? dataVencimento, int pagina, int tamanho);
     }
 }

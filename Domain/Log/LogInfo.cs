@@ -14,6 +14,6 @@ namespace Domain.Log
         public int Tipo { get; set; }
         public string CodigoExterno { get; set; }
         
-        public string Erro { get; set; }
+        public string? Erro { get; set; }
     }
 }

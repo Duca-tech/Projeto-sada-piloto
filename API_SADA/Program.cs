@@ -13,11 +13,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.SuppressModelStateInvalidFilter = true;
-});
-
 builder.Services.AddMemoryCache();
 
 AddDependenciaRepository.AddIndependencieRepositorys(builder.Services);

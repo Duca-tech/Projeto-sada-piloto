@@ -56,21 +56,35 @@ namespace Infraestructure.TarefaInfra
 
         }
 
-        public TarefaListResponse ListarTarefas(TarefaListRequest request, int pagina, int tamanho)
+        public TarefaListResponse ListarTarefas(EnumTarefa.status? status, DateTime? dataVencimento, int pagina, int tamanho)
         {
-            var response = new TarefaListResponse(
-                total: _dbContext.Tarefas.Count(),
+            IQueryable<TarefaInfo> query = _dbContext.Tarefas.AsNoTracking();
+
+            if (status.HasValue)
+                query = query.Where(x => x.Status == status.Value);
+
+            if (dataVencimento.HasValue)
+            {
+                var dia = dataVencimento.Value.Date;
+                query = query.Where(x => x.DataVencimento.Date == dia);
+            }
+
+            int total = query.Count();
+
+            var dados = query
+                .OrderBy(x => x.DataVencimento)
+                .ThenBy(x => x.Id)
+                .Skip((pagina - 1) * tamanho)
+                .Take(tamanho)
+                .ToList();
+
+            return new TarefaListResponse(
+                total: total,
+                dados: dados,
                 pagina: pagina,
-                totalPaginas: (int)Math.Ceiling((double)_dbContext.Tarefas.Count() / tamanho),
-                dados: _dbContext.Tarefas
-                    .Skip((pagina - 1) * tamanho)
-                    .Take(tamanho)
-                    .Where(x=>x.DataVencimento.Equals(request.Datavencimento) && x.Status.Equals(request.Status)).ToList()
-                );
-
-            return response;
-
-
+                totalPaginas: (int)Math.Ceiling((double)total / tamanho),
+                status: 200
+            );
         }
 
         public TarefaInfo PesquisarPorId(string id)

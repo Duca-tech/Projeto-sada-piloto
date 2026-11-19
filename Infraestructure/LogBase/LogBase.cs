@@ -19,7 +19,7 @@ namespace Infraestructure.LogBase
         public void SalvarLog(Domain.Log.LogInfo log)
         {
             _db.Log.Add(log);
-            _db.SaveChangesAsync();
+            _db.SaveChanges();
         }
     }
 }

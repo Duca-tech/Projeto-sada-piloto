@@ -16,11 +16,10 @@ namespace Application.Tarefa
         readonly TarefaService _tarefaService;
         readonly TarefaService.TarefaStatus _tarefaStatusValidator = new TarefaService.TarefaStatus();
         readonly TarefaService.TarefaListaValidacao _tarefaListValidator = new TarefaService.TarefaListaValidacao();
-        public TarefaCasoUso(ITarefaRespositorio tarefaRepositorio, TarefaService tarefaService, TarefaService.TarefaListaValidacao tarefaListValidator)
+        public TarefaCasoUso(ITarefaRespositorio tarefaRepositorio, TarefaService tarefaService)
         {
             _tarefaRepositorio = tarefaRepositorio;
             _tarefaService = tarefaService;
-            _tarefaListValidator = tarefaListValidator;
         }
 
 
@@ -160,7 +159,38 @@ namespace Application.Tarefa
                 }
 
 
-                return _tarefaRepositorio.ListarTarefas(request, pagina, tamanho);
+                EnumTarefa.status? status = null;
+                if (!string.IsNullOrWhiteSpace(request.Status))
+                {
+                    if (!_tarefaStatusValidator.IsValid(request.Status))
+                    {
+                        return new TarefaListResponse()
+                        {
+                            erro = "Status inválido. Os status permitidos são: Pendente, EmProgresso, Concluida.",
+                            status = 400
+                        };
+                    }
+                    status = EnumTarefa.GetEnumStatus(request.Status);
+                }
+
+                DateTime? dataVencimento = null;
+                if (!string.IsNullOrWhiteSpace(request.Datavencimento))
+                {
+                    try
+                    {
+                        dataVencimento = Rotina.ConverterDataConvencional(request.Datavencimento);
+                    }
+                    catch
+                    {
+                        return new TarefaListResponse()
+                        {
+                            erro = "Data de vencimento inválida. Use o formato dd/MM/yyyy.",
+                            status = 400
+                        };
+                    }
+                }
+
+                return _tarefaRepositorio.ListarTarefas(status, dataVencimento, pagina, tamanho);
 
             }
             catch (Exception ex)

@@ -16,33 +16,30 @@ namespace API_SADA.Controllers
             _tarefaCasoUso = tarefaCasoUso;
         }
 
-        //[Route("/listar")]
-        //[HttpGet]
-        //public IActionResult ListarTarefas()
-        //{
-        //}
-
         [Route("incluir")]
         [HttpPost]
         public ActionResult<TarefaResponse> Incluir([FromBody] TarefaRequest req)
         {
-            return _tarefaCasoUso.CriarTarefa(req);
+            var resp = _tarefaCasoUso.CriarTarefa(req);
+            return StatusCode(resp.status, resp);
         }
 
         [Route("alterar")]
         [HttpPut]
         public ActionResult<TarefaResponse> Alterar([FromBody] TarefaRequest req)
         {
-
-            return _tarefaCasoUso.AtualizarTarefa(req);
+            var resp = _tarefaCasoUso.AtualizarTarefa(req);
+            return StatusCode(resp.status, resp);
         }
 
+       
         [Route("listar")]
-        public ActionResult<TarefaListResponse> Listar([FromBody] TarefaListRequest req, [FromQuery] int pagina = 1, [FromQuery] int tamanho = 10)
+        [HttpGet]
+        public ActionResult<TarefaListResponse> Listar([FromQuery] string? status,[FromQuery] string? dataVencimento,[FromQuery] int pagina = 1,
+            [FromQuery] int tamanho = 10)
         {
-            
-
-            return _tarefaCasoUso.ListarTarefas(req, pagina, tamanho);
+            var resp = _tarefaCasoUso.ListarTarefas(new TarefaListRequest(status, dataVencimento), pagina, tamanho);
+            return StatusCode(resp.status, resp);
         }
     }
 }
