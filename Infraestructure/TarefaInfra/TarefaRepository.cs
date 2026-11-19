@@ -91,5 +91,20 @@ namespace Infraestructure.TarefaInfra
         {
             return _dbContext.Tarefas.Find(id);
         }
+
+        public void ExcluirTarefa(TarefaInfo tarefa)
+        {
+            _dbContext.Tarefas.Remove(tarefa);
+            _dbContext.SaveChanges();
+
+            SalvarLog(new Domain.Log.LogInfo()
+            {
+                Id = Guid.NewGuid().ToString(),
+                Mensagem = "Tarefa excluída com sucesso",
+                Status = (int)Domain.Log.EnumLog.StatusLog.Delete,
+                Tipo = (int)Domain.Log.EnumLog.TipoLog.Tarefa,
+                CodigoExterno = tarefa.Id
+            });
+        }
     }
 }

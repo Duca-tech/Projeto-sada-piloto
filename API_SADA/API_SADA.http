@@ -1,6 +1,36 @@
 @API_SADA_HostAddress = http://localhost:5232
 
-GET {{API_SADA_HostAddress}}/weatherforecast/
-Accept: application/json
+### Criar tarefa (201 Created)
+# @name criar
+POST {{API_SADA_HostAddress}}/api/tarefa
+Content-Type: application/json
 
-###
+{
+  "titulo": "Preparar apresentação",
+  "descricao": "Montar os slides",
+  "dataVencimento": "31/12/2026",
+  "status": "Pendente"
+}
+
+### Buscar por id (200 / 404)
+GET {{API_SADA_HostAddress}}/api/tarefa/{{criar.response.body.$.id}}
+
+### Listar todas (200)
+GET {{API_SADA_HostAddress}}/api/tarefa
+
+### Listar com filtros (200)
+GET {{API_SADA_HostAddress}}/api/tarefa?status=Pendente&dataVencimento=31/12/2026&pagina=1&tamanho=10
+
+### Editar (200 / 400 / 404)
+PUT {{API_SADA_HostAddress}}/api/tarefa/{{criar.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "titulo": "Preparar apresentação",
+  "descricao": "Slides prontos",
+  "dataVencimento": "31/12/2026",
+  "status": "Concluida"
+}
+
+### Excluir (204 / 404)
+DELETE {{API_SADA_HostAddress}}/api/tarefa/{{criar.response.body.$.id}}
