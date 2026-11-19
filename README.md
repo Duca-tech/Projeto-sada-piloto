@@ -17,6 +17,7 @@ API RESTful em **.NET 9** para gestão de tarefas. Ela permite cadastrar, consul
 - [Como testar](#como-testar)
 - [Validações e códigos HTTP](#validações-e-códigos-http)
 - [Logging](#logging)
+- [Testes automatizados](#testes-automatizados)
 
 ---
 
@@ -29,6 +30,7 @@ API RESTful em **.NET 9** para gestão de tarefas. Ela permite cadastrar, consul
 | Swashbuckle (Swagger) | Documentação interativa da API |
 | Data Annotations | Validação dos dados de entrada |
 | ILogger + HTTP Logging | Log da aplicação e das requisições |
+| xUnit + Coverlet | Testes automatizados e cobertura de código |
 
 ---
 
@@ -53,7 +55,7 @@ API_SADA  ──►  Application  ──►  Domain
 
 - **Separação de responsabilidades:** o controller só traduz HTTP, as regras ficam no caso de uso e a persistência fica isolada no repositório. Cada parte pode mudar sem afetar as outras.
 - **Inversão de dependência (o "D" do SOLID):** a camada Application define a interface `ITarefaRespositorio` e a Infraestructure a implementa. Trocar o InMemory por SQL Server, por exemplo, exige mudar só a Infraestructure.
-- **Testabilidade:** como o caso de uso depende de uma interface, o repositório pode ser substituído por um falso nos testes.
+- **Testabilidade:** como o caso de uso depende de uma interface, o repositório é substituído por um falso (`TarefaRepositorioFake`) nos testes, que rodam sem banco e em milissegundos.
 - **Injeção de dependência:** cada camada registra seus serviços (`AddDependenciaApplication` e `AddDependenciaRepository`), e o `Program.cs` só os conecta.
 
 ---
@@ -76,10 +78,15 @@ API Project SADA/
 │   ├── Tarefa/                     # TarefaInfo, EnumTarefa
 │   ├── Log/                        # LogInfo, EnumLog
 │   └── Rotina.cs                   # Conversão de datas, normalização de texto, validação de GUID
-└── Infraestructure/                # Persistência
-    ├── DbContext.cs
-    ├── LogBase/LogBase.cs          # Log de auditoria no banco
-    └── TarefaInfra/TarefaRepository.cs
+├── Infraestructure/                # Persistência
+│   ├── DbContext.cs
+│   ├── LogBase/LogBase.cs          # Log de auditoria no banco
+│   └── TarefaInfra/TarefaRepository.cs
+└── API_SADA.Tests/                 # Testes automatizados (xUnit)
+    ├── Application/                # TarefaCasoUso e TarefaService
+    ├── Domain/                     # Rotina e EnumTarefa
+    ├── Infraestrutura/             # TarefaRepository com EF InMemory
+    └── Fakes/                      # Repositório fake usado nos testes de unidade
 ```
 
 ---
@@ -257,3 +264,51 @@ info: Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware[9]
       StatusCode: 201
       Duration: 41,3
 ```
+
+---
+
+## Testes automatizados
+
+O projeto **API_SADA.Tests** usa **xUnit** e cobre as camadas de lógica de negócio, além da persistência.
+
+### Como rodar
+
+Dentro da pasta `API Project SADA`:
+
+```bash
+dotnet test
+```
+
+Com relatório de cobertura (gera um `coverage.cobertura.xml` dentro de `TestResults/`):
+
+```bash
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+No Visual Studio, os testes também aparecem no **Gerenciador de Testes** (*Test Explorer*).
+
+### O que é testado
+
+| Arquivo | Camada | O que verifica |
+|---|---|---|
+| `Application/TarefaCasoUsoTests.cs` | Application | Criar, buscar, editar, excluir e listar: caminho feliz, status inválido, data inválida, id inválido ou inexistente, id duplicado (409), paginação inválida e falha do repositório (500) |
+| `Application/TarefaServiceTests.cs` | Application | Validador de status (aceita acentos e espaços) e validações de página e tamanho |
+| `Domain/RotinaTests.cs` | Domain | Normalização de texto, conversão de data `dd/MM/yyyy` e validação de GUID |
+| `Domain/EnumTarefaTests.cs` | Domain | Conversão texto ↔ enum de status |
+| `Infraestrutura/TarefaRepositoryTests.cs` | Infraestructure | Inclusão, busca, edição e exclusão no EF InMemory; filtros por status e data; filtro antes da paginação; ordenação; log de auditoria |
+
+### Estratégia
+
+- **Testes de unidade do caso de uso:** usam o `TarefaRepositorioFake`, uma implementação em memória de `ITarefaRespositorio`. Assim a regra de negócio é testada isolada do banco, o que só é possível graças à inversão de dependência.
+- **Testes do repositório:** usam o **EF Core InMemory** real, com um banco de nome único por teste para que um teste não interfira no outro.
+- **Padrão AAA:** cada teste segue *Arrange, Act, Assert*, e o nome descreve o cenário e o resultado esperado (por exemplo, `CriarTarefa_ComStatusInvalido_Retorna400ENaoPersiste`).
+
+### Resultado atual
+
+**100 testes, todos aprovados.** Cobertura de linhas:
+
+| Camada | Cobertura de linhas |
+|---|---|
+| Domain | 94% |
+| Application | 90% |
+| Infraestructure | 92% |

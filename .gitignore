@@ -21,3 +21,6 @@ publish/
 # Segredos locais
 appsettings.*.local.json
 .env
+
+# Resultados de testes e cobertura
+TestResults/
