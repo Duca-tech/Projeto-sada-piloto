@@ -1,0 +1,23 @@
+# Build
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.rsuser
+
+# Temporários
+*.tmp
+*.bak
+*.log
+
+# Segredos locais
+appsettings.*.local.json
+.env
